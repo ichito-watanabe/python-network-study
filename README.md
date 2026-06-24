@@ -4,7 +4,44 @@
 
 ## 構成
 
-章ごとにフォルダを分けています。各フォルダには実装したコードと、その章の学習記録（`README.md`）を置きます。
+本のシミュレータは章をまたいで同じクラス（`Node`, `Link`, `Packet` など）を改良し続ける1つのプログラムなので、コードは `simulator/` 1箇所にまとめて育てていきます。章ごとのフォルダ（`chXX_xxx/`）はコードを置かず、学習記録（`README.md`）専用です。
+
+```
+simulator/              # 育て続ける1つのネットワークシミュレータ本体
+  Node.py
+  Link.py
+  Packet.py
+  ...
+ch01_basic_elements/
+  README.md             # 学習メモ・節ごとのgitタグ対応表
+ch02_network_and_time/
+  README.md
+...
+```
+
+### 節ごとの記録（gitタグ）
+
+1.1, 1.2 のように節単位で「両方残したい」場合は、ファイルを複製せずgitのコミット＋タグで残します。
+
+```bash
+# 1.1が完成したら
+git add -A
+git commit -m "1.1: Node/Link/Packetを実装"
+git tag ch01-1.1
+
+# 1.2に進んで完成したら
+git commit -m "1.2: 可視化を追加"
+git tag ch01-1.2
+
+# あとから1.1時点のコードを見る
+git show ch01-1.1:simulator/Node.py
+# 1.1と1.2の差分を見る
+git diff ch01-1.1 ch01-1.2 -- simulator/
+```
+
+タグ名は `chXX-Y.Z`（節）、演習課題は `chXX-exercise` を使う。各章の`README.md`に節とタグの対応を記録する。
+
+## 章一覧
 
 | 章 | タイトル | 状態 | フォルダ |
 | --- | --- | --- | --- |
