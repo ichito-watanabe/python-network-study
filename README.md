@@ -71,3 +71,12 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
+ ## 更新
+  .\venv\Scripts\Activate.ps1
+  python simulator/main.py
+
+    git add -A
+  git commit -m "1.1: Nodeクラスを実装"
+  git tag ch01-1.1
+  git push
+  git push origin ch01-1.1
