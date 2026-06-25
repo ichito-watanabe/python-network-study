@@ -15,19 +15,35 @@ class Node:
         if link not in self.links:
             self.links.append(link)
 
+    def send_packet(self,packet):
+        if packet.destination == self.address:
+            self.receive_packet(packet)
+
+        else:
+            for link in self.links:
+                next_node = link.node_x if self != link.node_x else link.node_y
+                print(f"ノード{self.node_id}からノード{next_node.node_id}へパケット転送")
+                link.transfer_packet(packet, self)
+                break
+
+    def receive_packet(self, packet):
+        print(f"ノード{self.node_id}がパケットを受信: {packet.payload}")
+
     #ノードの文字列表現を返すように修正
     def __str__(self):
         connected_nodes = [link.node_x.node_id if self != link.node_x else link.node_y.node_id for link in self.links]
         connected_nodes_str = ",".join(map(str,connected_nodes))
         return f"ノード(ID:{self.node_id},アドレス:{self.address},接続:{connected_nodes_str})"
     
+
+    
 class Link:
     def __init__ (self,node_x,node_y, bandwidth = 10000,delay = 0.001,packet_loss = 0.0):
         """
         ネットワーク内の２つのノード間のリンクを示すLinkクラス
         :param bandwidth: リンクの帯域幅（データ通信速度）,デフォルトは１
-        :param deley:　リンクの遅延時間　デフォルトは0
-        :param packe_loss: リンクのパケットロス率　(0.0から1.0の範囲)デフォルトは0.0
+        :param delay:　リンクの遅延時間　デフォルトは0
+        :param packet_loss: リンクのパケットロス率　(0.0から1.0の範囲)デフォルトは0.0
 
         """
         self.node_x = node_x
@@ -39,15 +55,36 @@ class Link:
         node_x.add_link(self)
         node_y.add_link(self)
 
+    def transfer_packet(self,packet,from_node):
+        next_node = self.node_x if from_node != self.node_x else self.node_y
+        next_node.receive_packet(packet)
+
     def __str__(self):
-        return f"リンク({self.node_x.node_id}{self.node_y.node_id},帯域幅:{self.bandwidth},遅延:{self.delay},パケットロス:{self.packet_loss})"
+        return f"リンク({self.node_x.node_id}-{self.node_y.node_id},帯域幅:{self.bandwidth},遅延:{self.delay},パケットロス:{self.packet_loss})"
+    
+
+class Packet:
+    def __init__(self,source,destination,payload):
+        """
+        ネットワーク内で送信されるパケットを表すPacketクラス
+
+        :param source: パケットの送信元のノードアドレス
+        :param destination パケットの宛先ノードのアドレス
+        :param payload: パケットに含まれるデータ
+        """
+        self.source = source
+        self.destination = destination
+        self.payload = payload
+
+    def __str__(self):
+        return f"パケット(送信元:{self.source},宛先:{self.destination},ペイロード{self.payload})"
+    
     
 
 
 node1 = Node(node_id = 1,address = "00:01")
 node2 = Node(node_id = 2, address = "00:02")
-link = Link(node1,node2)
+link1 = Link(node1,node2)
 
-print(node1)
-print(node2)
-print(link)
+packet = Packet(source = node1.address, destination = node2.address, payload = "hello!")
+node1.send_packet(packet)
