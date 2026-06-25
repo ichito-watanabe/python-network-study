@@ -1,5 +1,42 @@
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+
+class NetworkGraph:
+    def __init__(self):
+        self.graph = nx.Graph()
+
+    def add_node(self, node_id, label):
+        self.graph.add_node(node_id, label=label)
+
+    def add_link(self, node1_id, node2_id, label, bandwidth, delay):
+        self.graph.add_edge(node1_id, node2_id, label=label, bandwidth=bandwidth, delay=delay)
+
+    def draw(self):
+        # リンクの帯域幅に基づいて線の太さを決定する関数
+        def get_edge_width(bandwidth):
+            return np.log10(bandwidth) + 1  # bps単位での対数スケール
+
+        # リンクの遅延に基づいて線の色を決定する関数
+        def get_edge_color(delay):
+            if delay <= 0.001:  # 1ms以下
+                return 'green'
+            elif delay <= 0.01:  # 1-10ms
+                return 'yellow'
+            else:  # 10ms以上
+                return 'red'
+
+        pos = nx.spring_layout(self.graph)
+        edge_widths = [get_edge_width(self.graph[u][v]['bandwidth']) for u, v in self.graph.edges()]
+        edge_colors = [get_edge_color(self.graph[u][v]['delay']) for u, v in self.graph.edges()]
+
+        nx.draw(self.graph, pos, with_labels=False, node_color='lightblue', node_size=2000, width=edge_widths, edge_color=edge_colors)
+        nx.draw_networkx_labels(self.graph, pos, labels=nx.get_node_attributes(self.graph, 'label'))
+        nx.draw_networkx_edge_labels(self.graph, pos, edge_labels=nx.get_edge_attributes(self.graph, 'label'))
+        plt.show()
+
 class Node:
-    def __init__(self,node_id,address = None):
+    def __init__(self,node_id,address ,network_graph):
         """
         ネットワーク内のノードアドレスを表すNodeクラス
         :param node_id: ノードのID
@@ -9,6 +46,11 @@ class Node:
         self.node_id = node_id
         self.address = address
         self.links = []
+        self.network_graph = network_graph
+
+        #グラフにノードを追加
+        label = f"Node{node_id}\n{address}"
+        self.network_graph = network_graph.add_node(node_id,label)
 
     #リンクを接続するメソッドを追加
     def add_link(self,link):
@@ -38,7 +80,7 @@ class Node:
 
     
 class Link:
-    def __init__ (self,node_x,node_y, bandwidth = 10000,delay = 0.001,packet_loss = 0.0):
+    def __init__ (self,node_x,node_y, network_graph,bandwidth = 10000,delay = 0.001,packet_loss = 0.0):
         """
         ネットワーク内の２つのノード間のリンクを示すLinkクラス
         :param bandwidth: リンクの帯域幅（データ通信速度）,デフォルトは１
@@ -51,9 +93,14 @@ class Link:
         self.bandwidth = bandwidth
         self.delay = delay
         self.packet_loss = packet_loss
+        self.network_graph = network_graph
 
         node_x.add_link(self)
         node_y.add_link(self)
+
+        label = f"{bandwidth/1000000} Mbps, {delay} s"
+        self.network_graph.add_link(node_x.node_id, node_y.node_id, label, self.bandwidth, self.delay)
+
 
     def transfer_packet(self,packet,from_node):
         next_node = self.node_x if from_node != self.node_x else self.node_y
@@ -80,11 +127,13 @@ class Packet:
         return f"パケット(送信元:{self.source},宛先:{self.destination},ペイロード{self.payload})"
     
     
+network_graph = NetworkGraph()
 
-
-node1 = Node(node_id = 1,address = "00:01")
-node2 = Node(node_id = 2, address = "00:02")
-link1 = Link(node1,node2)
+node1 = Node(node_id = 1,address = "00:01",network_graph = network_graph)
+node2 = Node(node_id = 2, address = "00:02",network_graph = network_graph)
+link1 = Link(node1,node2,network_graph = network_graph)
 
 packet = Packet(source = node1.address, destination = node2.address, payload = "hello!")
 node1.send_packet(packet)
+
+network_graph.draw()
