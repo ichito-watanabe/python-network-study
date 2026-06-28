@@ -360,3 +360,4 @@ payload_size = 85
 node1.set_traffic(destination = "00:02",bitrate= 1000 , start_time =1.0, duration= 10.0, burstiness = 1.0, header_size = header_size,payload_size=payload_size)
 network_event_scheduler.run()
 
+network_event_scheduler.generate_throughput_graph(network_event_scheduler.packet_logs)
